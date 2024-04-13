@@ -8,6 +8,7 @@ class Grille:
         self.grille = [[0 for i in range(n)] for i in range(n)]
         self.size = n
         self.pileCase = Pile()
+        # Nombre possible pour les cases (le tuple sert à ce que la liste ne soit pas modifier dans les appels de méthode)
         self.casePossibilites = tuple([x for x in range(1, self.size+1)])
 
     def fill(self, tab=None):
@@ -37,7 +38,10 @@ class Grille:
                 
         else:
             assert len(tab) == self.size, "Le tableau que vous voulez rentrer doit être de la même taille que la grille"
-            self.grille = tab
+            # Permet de vraiment copier et pas seulement de faire un lien vers tab
+            for i in range(self.size):
+                for j in range(self.size):
+                    self.grille[i][j] = tab[i][j]
 
     def trim(self, n=17):
         """ Supprime aléatoirement certaines cases et laisse n cases remplies (par défaut 5)"""
@@ -124,13 +128,13 @@ class Grille:
             row = self.getRow(i)
             compteur = [row.count(i) for i in row]
             compteurSouhaite = [1 for i in range(self.size)]
-            if compteur != compteurSouhaite:
+            if compteur != compteurSouhaite or 0 in row:
                 print(f"Il y a un problème dans la grille (ligne {i+1})")
                 return False
         print("----------------------------------------\nLa grille a été correctement générée\n----------------------------------------")
         return True
     
-    def getGrille(self)->list:
+    def toList(self)->list:
         return self.grille
     
     def __repr__(self):
@@ -208,6 +212,27 @@ class Pile():
         s = ""
         for elt in self.pile:
             s += elt.__repr__() + ', '
+        return s[:-2]
+
+class File():
+    """ Structure de donnée classique d'une file """
+    def __init__(self):
+        self.file = []
+
+    def enfiler(self, elt):
+        self.file.insert(0, elt)
+
+    def defiler(self):
+        return self.file.pop()
+    
+    def isEmpty(self):
+        """ Renvoie vrai si la file est vide, faux sinon"""
+        return len(self.file) == 0
+
+    def __repr__(self):
+        s = ''
+        for i in range(len(self.file)):
+            s += self.file[i].__repr__() + ', '
         return s[:-2]
 
 """"
