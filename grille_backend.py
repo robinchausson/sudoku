@@ -8,8 +8,8 @@ class Grille:
         self.grille = [[0 for i in range(n)] for i in range(n)]
         self.size = n
         self.pileCase = Pile()
-        # Nombre possible pour les cases (le tuple sert à ce que la liste ne soit pas modifier dans les appels de méthode)
-        self.casePossibilites = tuple([x for x in range(1, self.size+1)])
+        # Nombre possible pour les cases
+        self.casePossibilites = [x for x in range(1, self.size+1)]
 
     def fill(self, tab=None):
         """ Remplit la grille avec les nombre de 1 à self.size de manière aléatoire
@@ -20,7 +20,7 @@ class Grille:
             i = 0
             j = 0
             while i < 9 and j < 9:
-                # On essaye d'ajouter une case
+                # On essaye d'ajouter une case en position i,j
                 case = Case(self.casePossibilites, i, j)
                 self.insertCase(case)
 
@@ -74,13 +74,8 @@ class Grille:
         elif case.hasNewValue():
             self.insertCase(case)
         elif not self.pileCase.isEmpty():
-            self.grille[i][j] = 0
+            self.grille[i][j] = 0 # Remettre à 0 est nécessaire pour ne pas retirer des possibilités au parent
             self.insertCase(self.pileCase.depiler())
-        # Ce cas n'arrive jamais normalement mais il est bon de le laisser pour le debug au cas où
-        else:
-            print("plus d'option")
-            print(self)
-            return False
         
     def getColumn(self, j:int) -> list:
         """ Retourne la j-eme colonne """
@@ -166,8 +161,10 @@ class Zone(Grille):
 
 class Case():
     """ Case à ajouter au Sudoku"""
-    def __init__(self, valeursPossible:tuple, i, j):
-        self.valeursPossible = list(valeursPossible)
+    def __init__(self, valeursPossible:list, i, j):
+        self.valeursPossible = []
+        for k in range(len(valeursPossible)):
+            self.valeursPossible.append(valeursPossible[k])
         self.valeur = 0
         self.i = i
         self.j = j
@@ -188,7 +185,7 @@ class Case():
         return self.i, self.j
 
     def __repr__(self):
-        return f"{self.valeur} ({self.i}, {self.j})"
+        return f"Case: {self.valeur} ({self.i}, {self.j}), {self.valeursPossible}"
 
 class Pile():
     """ Structure de donnée classique d'une pile """
@@ -207,7 +204,26 @@ class Pile():
     def isEmpty(self):
         """ Renvoie vrai si la pile est vide, faux sinon"""
         return len(self.pile) == 0
+
+    def put(self, newPile):
+        """ Remplace la pile actuel par la pile en parametre"""
+        self.pile = []
+        for i in range(len(newPile.pile)):
+            self.pile.append(newPile.pile[i])
+
+    def spill(self, newPile):
+        """ Transfert la pile en parametre dans la pile actuel"""
+        self.pile = []
+        while not newPile.isEmpty():
+            self.empiler(newPile.depiler())
     
+    def longueur(self):
+        return len(self.pile)
+    
+    def reverse(self):
+        """ Retourne la pile """
+        self.pile[::-1]
+
     def __repr__(self):
         s = ""
         for elt in self.pile:
