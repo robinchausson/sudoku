@@ -1,93 +1,83 @@
 import grille_backend as gridb
+import copy
+
 
 class Solveur(gridb.Grille):
     """ Grille avec des méthodes supplémentaires pour obtenir les solutions """
+
     def __init__(self, grille:list, n:int):
         super().__init__(n)
         self.fill(grille)
-        self.tabGrille = grille  # On garde le tableau pour les solutions multiples
-        self.pileCaseAResoudre = self.__getCaseAResoudre()
+        self._tabGrille = grille  # On garde le tableau pour les solutions multiples
+        self._caseAResoudre = [] # On récupère les cases potentiels
+
+        self.pileCaseAResoudre = gridb.Pile()
         self.pileCaseResolu = gridb.Pile()
-        self.nbCaseAResoudre = self.pileCaseAResoudre.longueur()
         self.solutions = []
 
-    def __getCaseAResoudre(self):
-        """ Récupérer dans une pile les case à résoudre """
-        pile = gridb.Pile()
+    def __getCaseAResoudre(self)->list:
+        """ Récupérer dans une liste les case à résoudre """
+        cases = []
         for i in range(self.size):
             for j in range(self.size):
                 if self.grille[i][j] not in self.casePossibilites:
-                    case = gridb.Case(self.casePossibilites, i, j)
-                    pile.empiler(case)
-        return pile
+                    case = gridb.Case(self.__getValeursPossible(i,j), i, j)
+                    cases.append(case)
+        return cases
+    
+    def __getValeursPossible(self, i, j)->list:
+        """ Récupère les valeurs vraiment possible pour une case (on retire tout ce qui se trouve sur les ligne ou colonne)"""
+        valeurs = []
+        # Le tmpSolv permet de ne pas regarder les potentiels case déjà résolu
+        tmpSolv = Solveur(self._tabGrille, self.size)
+        for valeur in self.casePossibilites:
+            if tmpSolv.isPossible(i, j, valeur):
+                valeurs.append(valeur)
+        return valeurs
     
     def modifyCase(self, case)->bool:
-        valeur = case.getNewValue()
         i, j = case.getPos()
-        if self.isPossible(i, j, valeur):
-            self.grille[i][j] = valeur
-            self.pileCaseResolu.empiler(case)
-            return True
-        elif case.hasNewValue():
-            return self.modifyCase(case)
+        if case.hasNewValue():
+            valeur = case.getNewValue()
+            if self.isPossible(i, j, valeur):
+                self.grille[i][j] = valeur
+                self.pileCaseResolu.empiler(case)
+                return True
+            else:
+                return self.modifyCase(case)
+            
         elif not self.pileCaseResolu.isEmpty():
             # Remettre à 0 est nécessaire pour ne pas retirer des possibilités au parent
             self.grille[i][j] = 0
             # On met la dernière case résolu dans la pile à résoudre, mais il ne faut pas oublier
             # de lui redonner toutes les cases potentiels ! On la recreer donc complétement
-            case = gridb.Case(self.casePossibilites, i, j)
+            case = gridb.Case(self.__getValeursPossible(i,j), i, j)
             self.pileCaseAResoudre.empiler(case) 
             return self.modifyCase(self.pileCaseResolu.depiler())
         # Quand il n'y a pas de solution
         else:
             return False
     
-    def getSolution(self):
-        """ Renvoie la solution du Sudoku dans un type Solveur() """
-        while not self.pileCaseAResoudre.isEmpty():
-            case = self.pileCaseAResoudre.depiler()
-            if not self.modifyCase(case):
-                return Solveur(gridb.Grille(self.size).toList(), self.size)
-        
-        # Ce que l'on renvoit
-        newGrille = Solveur(self.grille, self.size)
-
-        # On remet au propre notre Solveur()
-        self = Solveur(self.tabGrille, self.size)
-
-        return newGrille
-    
     def getAllSolutions(self)->list:
         """ Renvoie les solution du Sudoku dans une liste de Solveur()"""
         self.solutions = []
         
-        # Pour chaque case à résoudre
-        for i in range(self.nbCaseAResoudre):
-            # On reset la pile des cases à résoudres (remplissage) et on vide les cases résolues
-            self.grille = Solveur(self.tabGrille, self.size).grille
-            self.pileCaseAResoudre = Solveur(self.tabGrille, self.size).__getCaseAResoudre()
-            self.pileCaseResolu = gridb.Pile()
+        self.grille = Solveur(self._tabGrille, self.size).grille
+        self.pileCaseAResoudre = gridb.Pile(self.__getCaseAResoudre())
+        self.pileCaseResolu = gridb.Pile()
 
-            # On la place en début de pile
-            self.pileCaseAResoudre.pile[i], self.pileCaseAResoudre.pile[0] = self.pileCaseAResoudre.pile[0], self.pileCaseAResoudre.pile[i]
-            premiereCase = self.pileCaseAResoudre.pile[0]
-            valeursPossiblePremiereCase = premiereCase.valeursPossible
-            # Tant qu'elle a des valeurs possible, on cherche des solutions
-            for valeur in valeursPossiblePremiereCase:
-                # On reset la pile des cases à résoudres (remplissage) et on vide les cases résolues
-                self.grille = Solveur(self.tabGrille, self.size).grille
-                self.pileCaseAResoudre = Solveur(self.tabGrille, self.size).__getCaseAResoudre()
-                self.pileCaseResolu = gridb.Pile()
-
-                # On la place en début de pile
-                self.pileCaseAResoudre.pile[i], self.pileCaseAResoudre.pile[0] = self.pileCaseAResoudre.pile[0], self.pileCaseAResoudre.pile[i]
-                premiereCase = self.pileCaseAResoudre.pile[0]
-                premiereCase.valeursPossible = [valeur]
-
-                solution = self.getSolution()
-                if solution.isSolutionOk():
-                    if solution.toList() not in self.solutions:
-                        self.solutions.append(solution.toList())
+        isASolution = True
+        # On fais une résolution de la grille avec la case actuelle en premiere place
+        while not self.pileCaseAResoudre.isEmpty():
+            case = self.pileCaseAResoudre.depiler()
+            if not self.modifyCase(case):
+                isASolution = False
+                break
+        
+        if isASolution:
+            solution = self.toList()
+            if solution not in self.solutions:
+                self.solutions.append(solution)
 
         # On repasse les solutions sous forme de grille
         for i in range(len(self.solutions)):
@@ -95,15 +85,11 @@ class Solveur(gridb.Grille):
             
         return self.solutions
     
-    def countSolutions(self):
-        """ Renvoie le nombre de solutions """
-        return len(self.getAllSolutions()) if len(self.getAllSolutions()) == 0 else len(self.solutions) 
-    
     def isSolutionOk(self)->bool:
         for i in range(self.size):
             row = self.getRow(i)
-            compteur = [row.count(i) for i in row]
-            compteurSouhaite = [1 for i in range(self.size)]
+            compteur = [row.count(j) for j in row]
+            compteurSouhaite = [1 for j in range(self.size)]
             if compteur != compteurSouhaite or 0 in row:
                 return False
         return True

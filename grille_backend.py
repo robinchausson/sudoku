@@ -19,7 +19,7 @@ class Grille:
         if tab is None:
             i = 0
             j = 0
-            while i < 9 and j < 9:
+            while i < self.size and j < self.size:
                 # On essaye d'ajouter une case en position i,j
                 case = Case(self.casePossibilites, i, j)
                 self.insertCase(case)
@@ -43,9 +43,8 @@ class Grille:
                 for j in range(self.size):
                     self.grille[i][j] = tab[i][j]
 
-    def trim(self, n=17):
+    def trim(self, n):
         """ Supprime aléatoirement certaines cases et laisse n cases remplies (par défaut 5)"""
-        assert self.size**2 > n >= 17, "Vous devez laisser au moins 17 cases remplies"
 
         for i in range((self.size**2)-n):
             estTrimer = False
@@ -56,14 +55,14 @@ class Grille:
                     self.grille[i][j] = ' '
                     estTrimer = True
         
-    def isPossible(self, i, j, nb):
+    def isPossible(self, i, j, nb:int):
         """ Renvoie vrai si l'on peut mettre le nombre nb aux coordonnées i,j, faux sinon"""
 
         column = self.getColumn(j)
         row = self.getRow(i)
         zone = self.getZone(i, j).toList()
 
-        return (nb not in column) and (nb not in row) and (nb not in zone)
+        return isinstance(nb, int) and (nb not in column) and (nb not in row) and (nb not in zone)
             
     def insertCase(self, case):
         valeur = case.getNewValue()
@@ -190,8 +189,11 @@ class Case():
 class Pile():
     """ Structure de donnée classique d'une pile """
 
-    def __init__(self):
+    def __init__(self, tab=None):
         self.pile = []
+        if tab is not None:
+            for elt in tab:
+                self.empiler(elt)
 
     def empiler(self, elt):
         """ Empile un élément """
@@ -232,8 +234,11 @@ class Pile():
 
 class File():
     """ Structure de donnée classique d'une file """
-    def __init__(self):
-        self.file = []
+    def __init__(self, tab=None):
+        if tab is not None:
+            self.file = tab
+        else:
+            self.file = []
 
     def enfiler(self, elt):
         self.file.insert(0, elt)
@@ -251,7 +256,7 @@ class File():
             s += self.file[i].__repr__() + ', '
         return s[:-2]
 
-""""
+"""
 # --- TEST --- #
 grille = Grille(9)
 # tab = [['a','b'], ['c','d']]
