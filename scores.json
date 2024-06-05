@@ -1,0 +1,32 @@
+[
+    {
+        "name": "Robin",
+        "score": 100,
+        "level": "Difficile",
+        "time": "05:24"
+    },
+    {
+        "name": "Mathias",
+        "score": 200,
+        "level": "Moyen",
+        "time": "03:12"
+    },
+    {
+        "name": "Bob",
+        "score": 800,
+        "level": "Facile",
+        "time": "04:56"
+    },
+    {
+        "name": "Léa",
+        "score": 389,
+        "level": "Moyen",
+        "time": "03:49"
+    },
+    {
+        "name": "Fab",
+        "score": 623,
+        "level": "Difficile",
+        "time": "05:12"
+    }
+]
