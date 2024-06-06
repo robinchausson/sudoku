@@ -3,6 +3,7 @@ from scoreboard import Scoreboard
 from PIL import Image, ImageTk
 import tkinter as tk
 import grille_backend as gridb
+import solveur as slv
 
 class SudokuApp:
     def __init__(self, root, username, difficulty="Facile"):
@@ -35,7 +36,7 @@ class SudokuApp:
             self.grille.trim(40)
             self.display_sudoku_grid(self.grille.toList())
         elif difficulty == "Difficile":
-            self.grille.trim(30)
+            self.grille.trim(32)
             self.display_sudoku_grid(self.grille.toList())
 
         # Configurer les lignes et colonnes pour centrer la grille de Sudoku
@@ -133,7 +134,7 @@ class SudokuApp:
             self.sudoku_frame.destroy()
 
         # Taille des cases
-        cell_size = 10
+        cell_size = 20
 
         # Création du cadre pour la grille de Sudoku
         self.sudoku_frame = ctk.CTkFrame(self.root, corner_radius=10)
@@ -151,7 +152,7 @@ class SudokuApp:
         self.sudoku_buttons = ctk.CTkFrame(self.sudoku_frame, corner_radius=10)
         self.sudoku_buttons.grid(row=1, column=1, padx=20, pady=10, sticky="nsew")
 
-        self.sudoku_buttons.grid_rowconfigure(0, 1)
+        self.sudoku_buttons.grid_rowconfigure(0, weight=1)
         self.sudoku_buttons.grid_columnconfigure(0, weight=1)
         self.sudoku_buttons.grid_columnconfigure(1, weight=1)
 
@@ -180,27 +181,44 @@ class SudokuApp:
             self.sudoku_grille.grid_rowconfigure(i, weight=1)
             self.sudoku_grille.grid_columnconfigure(i, weight=1)
 
+        self.tab_label_entry = []
         # Création et affichage de la grille de Sudoku avec la gestion des entrées utilisateur
         for i in range(9):
+            sous_tab = []
             for j in range(9):
                 cell_value = sudoku_grid[i][j]
                 if cell_value != " ":
                     label = ctk.CTkLabel(self.sudoku_grille, text=cell_value, font=self.font_style, width=cell_size, height=cell_size, anchor="center")
                     label.grid(row=i, column=j, padx=1, pady=1, sticky="nsew")
+                    sous_tab.append(label)
                 else:
                     entry = ctk.CTkEntry(self.sudoku_grille, font=self.font_style, width=cell_size, height=cell_size, justify="center")
                     entry.grid(row=i, column=j, padx=1, pady=1, sticky="nsew")
                     # Ajout de la gestion des entrées utilisateur
                     entry.bind("<KeyRelease>", lambda event, row=i, column=j, entry=entry: self.handle_user_input(event, row, column, entry))
-
+                    sous_tab.append(entry)
+            self.tab_label_entry.append(sous_tab)
         self.sudoku_grille.grid_propagate(False)
 
     def solution_game(self):
-        pass
+        for i in range(self.grille.size):
+            for j in range(self.grille.size):
+                if self.grille.grille[i][j] == " ":
+                    self.grille.grille[i][j] = self.grille_solution[i][j]
+                    self.tab_label_entry[i][j].insert(0, self.grille_solution[i][j])
+                    self.tab_label_entry[i][j].configure(state="disabled")
+        tk.messagebox.showinfo("Fin de partie", f"La résolution est terminée !")
 
     def solve_game(self):
-        pass
-    
+        solveur = slv.Solveur(self.grille.toList(), self.grille.size, self.root, self.tab_label_entry)
+        solution = solveur.getSolution()
+
+        for i in range(self.grille.size):
+            for j in range(self.grille.size):
+                self.tab_label_entry[i][j].configure(state="disabled")
+
+        tk.messagebox.showinfo("Fin de partie", f"La résolution est terminée !")
+
     def handle_user_input(self, event, row, column, entry):
         # Récupérer la valeur saisie par l'utilisateur dans l'entrée
         value = entry.get()
@@ -228,10 +246,7 @@ class SudokuApp:
                 if self.grille.isFillOk():
                     self.scoreboard.add_score(self.username, self.score, self.difficulty, self.time_elapsed)
                     # On félicite le joueur
-                    if tk.messagebox.askyesno("Bravo !", f"Vous avez gagné avec un score de {self.score} points !\nRetour au menu principal ?"):
-                        self.restart_game()
-                    else:
-                        self.root.destroy()
+                    tk.messagebox.showinfo("Fin de partie", f"Félicitation ! Vous avez gagné !")
 
             else:
                  # Ajouter le score à l'utilisateur en fonction du temps
@@ -383,8 +398,3 @@ class WelcomeApp:
             
         else:
             self.entry.configure(placeholder_text="Le pseudo est requis", placeholder_text_color="red")
-
-if __name__ == "__main__":
-    root = ctk.CTk()
-    app = WelcomeApp(root)
-    root.mainloop()
