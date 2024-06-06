@@ -304,7 +304,7 @@ class WelcomeApp:
 
         # Charger l'image
         image = Image.open("assets/insa.png")
-        image = image.resize((210, 210), Image.ANTIALIAS)
+        image = image.resize((210, 210))
         photo = ImageTk.PhotoImage(image)
 
         # Afficher l'image dans un label
