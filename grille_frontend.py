@@ -3,8 +3,6 @@ from scoreboard import Scoreboard
 from PIL import Image, ImageTk
 import tkinter as tk
 import grille_backend as gridb
-import threading
-import time
 
 class SudokuApp:
     def __init__(self, root, username, difficulty="Facile"):
@@ -135,38 +133,74 @@ class SudokuApp:
             self.sudoku_frame.destroy()
 
         # Taille des cases
-        cell_size = 30
+        cell_size = 10
 
         # Création du cadre pour la grille de Sudoku
         self.sudoku_frame = ctk.CTkFrame(self.root, corner_radius=10)
         self.sudoku_frame.grid(row=1, column=1, padx=20, sticky="nsew")
+        self.sudoku_frame.grid_rowconfigure(0, weight=15)
+        self.sudoku_frame.grid_rowconfigure(1, weight=1)
+        self.sudoku_frame.grid_columnconfigure(0, weight=4)
+        self.sudoku_frame.grid_columnconfigure(1, weight=5)
+        self.sudoku_frame.grid_columnconfigure(2, weight=4)
+
+        self.sudoku_grille = ctk.CTkFrame(self.sudoku_frame, corner_radius=10)
+        self.sudoku_grille.grid(row=0, column=1, padx=20, pady=25, sticky="nsew")
+
+        # Boutons
+        self.sudoku_buttons = ctk.CTkFrame(self.sudoku_frame, corner_radius=10)
+        self.sudoku_buttons.grid(row=1, column=1, padx=20, pady=10, sticky="nsew")
+
+        self.sudoku_buttons.grid_rowconfigure(0, 1)
+        self.sudoku_buttons.grid_columnconfigure(0, weight=1)
+        self.sudoku_buttons.grid_columnconfigure(1, weight=1)
+
+        self.solution_button = ctk.CTkButton(
+            self.sudoku_buttons, text="Voir la solution", command=self.solution_game, 
+            corner_radius=10, font=self.font_style, width=300, height=60, 
+            fg_color=self.fg_color, hover_color="#144d75"
+        )
+        self.solution_button.grid(row=0, column=0)
+
+        self.solve_button = ctk.CTkButton(
+            self.sudoku_buttons, text="Résoudre avec le solveur", command=self.solve_game, 
+            corner_radius=10, font=self.font_style, width=300, height=60, 
+            fg_color=self.fg_color, hover_color="#144d75"
+        )
+        self.solve_button.grid(row=0, column=1)
         
          # Séparation des sous-grilles avec des bordures plus épaisses et transparentes
         for i in range(3):
             for j in range(3):
-                frame = ctk.CTkFrame(self.sudoku_frame, border_width=2)
+                frame = ctk.CTkFrame(self.sudoku_grille, border_width=2)
                 frame.grid(row=i*3, column=j*3, rowspan=3, columnspan=3, sticky="nsew")
 
         # Configurer les lignes et colonnes pour les séparations de la grille
         for i in range(9):
-            self.sudoku_frame.grid_rowconfigure(i, minsize=cell_size)
-            self.sudoku_frame.grid_columnconfigure(i, minsize=cell_size)
+            self.sudoku_grille.grid_rowconfigure(i, weight=1)
+            self.sudoku_grille.grid_columnconfigure(i, weight=1)
 
         # Création et affichage de la grille de Sudoku avec la gestion des entrées utilisateur
         for i in range(9):
             for j in range(9):
                 cell_value = sudoku_grid[i][j]
                 if cell_value != " ":
-                    label = ctk.CTkLabel(self.sudoku_frame, text=cell_value, font=self.font_style, width=cell_size, height=cell_size, anchor="center")
+                    label = ctk.CTkLabel(self.sudoku_grille, text=cell_value, font=self.font_style, width=cell_size, height=cell_size, anchor="center")
                     label.grid(row=i, column=j, padx=1, pady=1, sticky="nsew")
                 else:
-                    entry = ctk.CTkEntry(self.sudoku_frame, font=self.font_style, width=cell_size, height=cell_size, justify="center")
+                    entry = ctk.CTkEntry(self.sudoku_grille, font=self.font_style, width=cell_size, height=cell_size, justify="center")
                     entry.grid(row=i, column=j, padx=1, pady=1, sticky="nsew")
                     # Ajout de la gestion des entrées utilisateur
                     entry.bind("<KeyRelease>", lambda event, row=i, column=j, entry=entry: self.handle_user_input(event, row, column, entry))
 
-        self.sudoku_frame.grid_propagate(False)
+        self.sudoku_grille.grid_propagate(False)
 
+    def solution_game(self):
+        pass
+
+    def solve_game(self):
+        pass
+    
     def handle_user_input(self, event, row, column, entry):
         # Récupérer la valeur saisie par l'utilisateur dans l'entrée
         value = entry.get()

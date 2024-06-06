@@ -14,8 +14,8 @@ def main():
     # app.mainloop()
 
     root = ctk.CTk()
-    app = gridf.WelcomeApp(root)
-    # app = gridf.SudokuApp(root)
+    #app = gridf.WelcomeApp(root)
+    app = gridf.SudokuApp(root, 'patrick')
     root.mainloop()
 
 if __name__ == '__main__':
