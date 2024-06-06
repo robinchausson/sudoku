@@ -3,7 +3,8 @@ from scoreboard import Scoreboard
 from PIL import Image, ImageTk
 import tkinter as tk
 import grille_backend as gridb
-from tkinter import font
+import threading
+import time
 
 class SudokuApp:
     def __init__(self, root, username, difficulty="Facile"):
@@ -23,8 +24,21 @@ class SudokuApp:
 
         grille = gridb.Grille(9)
         grille.fill()
-        grille.trim(70)
-        self.display_sudoku_grid(grille.toList())
+        self.grille_solution = grille.toList()
+
+        self.grille = gridb.Grille(9)
+        self.grille.fill(grille.toList())
+
+        # Gestion de la difficulté
+        if difficulty == "Facile":
+            self.grille.trim(55)
+            self.display_sudoku_grid(self.grille.toList())
+        elif difficulty == "Moyen":
+            self.grille.trim(40)
+            self.display_sudoku_grid(self.grille.toList())
+        elif difficulty == "Difficile":
+            self.grille.trim(30)
+            self.display_sudoku_grid(self.grille.toList())
 
         # Configurer les lignes et colonnes pour centrer la grille de Sudoku
         self.root.grid_rowconfigure(0, weight=1)
@@ -63,7 +77,7 @@ class SudokuApp:
         )
         self.scoreboard_button.grid(row=0, column=2)
 
-        self.best_score_label = ctk.CTkLabel(self.frame, text=f"Meilleur score : {self.scoreboard.get_best_score(self.username, self.difficulty)}", font=self.font_style, width=300)
+        self.best_score_label = ctk.CTkLabel(self.frame, text=f"Meilleur score : {self.scoreboard.get_best_score(self.difficulty)}", font=self.font_style, width=300)
         self.best_score_label.grid(row=1, column=0, padx=20)
 
         # Ajout du label du timer
@@ -104,7 +118,7 @@ class SudokuApp:
                 entry['level'] = "Moyen      "
             elif entry['level'] == "Difficile":
                 entry['level'] = "Difficile  "
-            score_message += f"{i+1}    | {entry['score']}   | {entry['level']}| {entry['time']} | {entry['name']} \n"
+            score_message += f"{i+1}    | {entry['score']}    | {entry['level']}| {entry['time']} | {entry['name']} \n"
         scoreboard_text.insert("1.0", score_message)
 
         scoreboard_window.mainloop()
@@ -121,7 +135,7 @@ class SudokuApp:
             self.sudoku_frame.destroy()
 
         # Taille des cases
-        cell_size = 35
+        cell_size = 30
 
         # Création du cadre pour la grille de Sudoku
         self.sudoku_frame = ctk.CTkFrame(self.root, corner_radius=10)
@@ -138,7 +152,7 @@ class SudokuApp:
             self.sudoku_frame.grid_rowconfigure(i, minsize=cell_size)
             self.sudoku_frame.grid_columnconfigure(i, minsize=cell_size)
 
-        # Création et affichage de la grille de Sudoku
+        # Création et affichage de la grille de Sudoku avec la gestion des entrées utilisateur
         for i in range(9):
             for j in range(9):
                 cell_value = sudoku_grid[i][j]
@@ -148,8 +162,93 @@ class SudokuApp:
                 else:
                     entry = ctk.CTkEntry(self.sudoku_frame, font=self.font_style, width=cell_size, height=cell_size, justify="center")
                     entry.grid(row=i, column=j, padx=1, pady=1, sticky="nsew")
-    
+                    # Ajout de la gestion des entrées utilisateur
+                    entry.bind("<KeyRelease>", lambda event, row=i, column=j, entry=entry: self.handle_user_input(event, row, column, entry))
+
         self.sudoku_frame.grid_propagate(False)
+
+    def handle_user_input(self, event, row, column, entry):
+        # Récupérer la valeur saisie par l'utilisateur dans l'entrée
+        value = entry.get()
+        # Vérifier si la valeur saisie est valide (par exemple, un chiffre entre 1 et 9)
+        if value.isdigit() and 1 <= int(value) <= 9 and self.grille.isPossible(row, column, int(value)):
+            if self.grille_solution[row][column] == int(value):
+                # Appliquer la valeur saisie à la grille de Sudoku
+                self.grille.grille[row][column] = int(value)
+                entry.configure(state="disabled")
+
+                # Ajouter le score à l'utilisateur en fonction du temps
+                if self.time_elapsed <= 60:
+                    self.score += 10
+                elif 60 < self.time_elapsed <= 120:
+                    self.score += 8
+                elif 120 < self.time_elapsed <= 180:
+                    self.score += 6
+                elif 180 < self.time_elapsed <= 300:
+                    self.score += 4
+                else:
+                    self.score += 1
+                
+                self.update_score(self.score)
+
+                if self.grille.isFillOk():
+                    self.scoreboard.add_score(self.username, self.score, self.difficulty, self.time_elapsed)
+                    # On félicite le joueur
+                    if tk.messagebox.askyesno("Bravo !", f"Vous avez gagné avec un score de {self.score} points !\nRetour au menu principal ?"):
+                        self.restart_game()
+                    else:
+                        self.root.destroy()
+
+            else:
+                 # Ajouter le score à l'utilisateur en fonction du temps
+                if self.time_elapsed <= 60:
+                    self.score -= 4
+                elif 60 < self.time_elapsed <= 120:
+                    self.score -= 6
+                elif 120 < self.time_elapsed <= 180:
+                    self.score -= 8
+                elif 180 < self.time_elapsed <= 300:
+                    self.score -= 10
+                else:
+                    self.score -= 1
+
+                if self.score < 0:
+                    self.score = 0
+                
+                self.update_score(self.score)
+        else:
+            # Réinitialiser la case à une chaîne vide si la valeur saisie n'est pas valide
+            entry.delete(0, tk.END)
+            self.score -= 5
+            if self.score < 0:
+                self.score = 0
+            self.update_score(self.score)
+        
+class LoadingWindow:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Chargement...")
+        ctk.set_appearance_mode("light")
+
+        # Définir la taille de la fenêtre de chargement
+        window_width = 300
+        window_height = 100
+
+        # Calculer les coordonnées pour centrer la fenêtre
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+
+        # Définir la géométrie de la fenêtre pour la centrer
+        self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
+
+        self.label = ctk.CTkLabel(self.root, text="Génération de votre grille...", font=("Helvetica", 14))
+        self.label.pack(expand=True)
+
+        self.progress = ctk.CTkProgressBar(self.root, mode="indeterminate")
+        self.progress.pack(expand=True, padx=20, pady=20)
+        self.progress.start()  
     
 class WelcomeApp:
     def __init__(self, root, username=""):
@@ -227,11 +326,27 @@ class WelcomeApp:
 
     def start_app(self):
         username = self.entry.get()
+        difficulty = self.difficulty.get()
+
         if username:
             self.root.destroy()
-            root = ctk.CTk()
-            app = SudokuApp(root, username)
-            root.mainloop()
+
+             # Ouvrir la fenêtre de chargement
+            loading_root = ctk.CTk()
+            loading_app = LoadingWindow(loading_root)
+        
+            # Fonction pour charger la fenêtre principale après un délai
+            def load_main_app():
+                main_root = ctk.CTk()
+                app = SudokuApp(main_root, username, difficulty)
+                loading_root.destroy()
+                main_root.mainloop()
+        
+            # Définir un délai avant de charger la fenêtre principale
+            loading_root.after(200, load_main_app)
+        
+            loading_root.mainloop()
+            
         else:
             self.entry.configure(placeholder_text="Le pseudo est requis", placeholder_text_color="red")
 

@@ -18,7 +18,7 @@
         "time": "04:56"
     },
     {
-        "name": "Léa",
+        "name": "L\u00e9a",
         "score": 389,
         "level": "Moyen",
         "time": "03:49"
@@ -28,5 +28,35 @@
         "score": 623,
         "level": "Difficile",
         "time": "05:12"
+    },
+    {
+        "name": "ZywOo",
+        "score": 50,
+        "level": "Facile",
+        "time": 49
+    },
+    {
+        "name": "ZywOo",
+        "score": 60,
+        "level": "Facile",
+        "time": 51
+    },
+    {
+        "name": "ZywOo",
+        "score": 50,
+        "level": "Facile",
+        "time": 19
+    },
+    {
+        "name": "ZywOo",
+        "score": 20,
+        "level": "Facile",
+        "time": 9
+    },
+    {
+        "name": "ZywOo",
+        "score": 60,
+        "level": "Facile",
+        "time": 23
     }
 ]

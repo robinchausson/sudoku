@@ -118,11 +118,18 @@ class Grille:
         return newZone
                 
     def isFillOk(self)->bool:
+        # On vérifie qu'il n'y a pas de case vide dans la grille
+        for i in range(self.size):
+            for j in range(self.size):
+                if self.grille[i][j] == 0 or self.grille[i][j] == ' ':
+                    print(f"Il y a un problème dans la grille (case {i+1}, {j+1})")
+                    return False
+        # On vérifie qu'il n'y a bien qu'une fois chaque chiffre par ligne
         for i in range(self.size):
             row = self.getRow(i)
             compteur = [row.count(i) for i in row]
             compteurSouhaite = [1 for i in range(self.size)]
-            if compteur != compteurSouhaite or 0 in row:
+            if compteur != compteurSouhaite or 0 in row or ' ' in row:
                 print(f"Il y a un problème dans la grille (ligne {i+1})")
                 return False
         print("----------------------------------------\nLa grille a été correctement générée\n----------------------------------------")
