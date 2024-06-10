@@ -117,9 +117,8 @@ class SudokuApp:
                 entry['level'] = "Moyen      "
             elif entry['level'] == "Difficile":
                 entry['level'] = "Difficile  "
-            minutes, seconds = divmod(entry['time'], 60)
-            time_str = f"{minutes:02}:{seconds:02}"
-            score_message += f"{i+1}    | {entry['score']}    | {entry['level']}| {time_str} | {entry['name']} \n"
+            
+            score_message += f"{i+1}    | {entry['score']}    | {entry['level']}| {entry['time']} | {entry['name']} \n"
         scoreboard_text.insert("1.0", score_message)
 
         scoreboard_window.mainloop()
@@ -246,7 +245,9 @@ class SudokuApp:
                 self.update_score(self.score)
 
                 if self.grille.isFillOk():
-                    self.scoreboard.add_score(self.username, self.score, self.difficulty, self.time_elapsed)
+                    minutes, seconds = divmod(self.time_elapsed, 60)
+                    time_str = f"{minutes:02}:{seconds:02}"
+                    self.scoreboard.add_score(self.username, self.score, self.difficulty, time_str)
                     # On félicite le joueur
                     tk.messagebox.showinfo("Fin de partie", f"Félicitation ! Vous avez gagné !")
 
