@@ -29,7 +29,7 @@ class Scoreboard:
         self.save_scores()
 
     def get_scores(self):
-        return sorted(self.scores, key=lambda x: x["score"], reverse=True)[:10]
+        return sorted(self.scores, key=lambda x: x["score"], reverse=True)[:9]
     
     def get_best_score(self, difficulty):
         scores = self.get_scores()

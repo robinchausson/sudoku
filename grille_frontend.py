@@ -99,7 +99,7 @@ class SudokuApp:
     def show_scoreboard_window(self):
         scoreboard_window = ctk.CTk()
         scoreboard_window.title("Scoreboard")
-        scoreboard_window.geometry("800x600")
+        scoreboard_window.geometry("800x400")
 
         scoreboard_frame = ctk.CTkFrame(scoreboard_window, corner_radius=10)
         scoreboard_frame.pack(pady=10, padx=20, fill="both", expand=True)
