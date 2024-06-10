@@ -58,5 +58,17 @@
         "score": 60,
         "level": "Facile",
         "time": 23
+    },
+    {
+        "name": "patrick",
+        "score": 10,
+        "level": "Facile",
+        "time": 7
+    },
+    {
+        "name": "patrick",
+        "score": 55,
+        "level": "Facile",
+        "time": 24
     }
 ]

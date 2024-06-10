@@ -30,7 +30,7 @@ class SudokuApp:
 
         # Gestion de la difficulté
         if difficulty == "Facile":
-            self.grille.trim(55)
+            self.grille.trim(60)
             self.display_sudoku_grid(self.grille.toList())
         elif difficulty == "Moyen":
             self.grille.trim(40)
@@ -117,7 +117,9 @@ class SudokuApp:
                 entry['level'] = "Moyen      "
             elif entry['level'] == "Difficile":
                 entry['level'] = "Difficile  "
-            score_message += f"{i+1}    | {entry['score']}    | {entry['level']}| {entry['time']} | {entry['name']} \n"
+            minutes, seconds = divmod(entry['time'], 60)
+            time_str = f"{minutes:02}:{seconds:02}"
+            score_message += f"{i+1}    | {entry['score']}    | {entry['level']}| {time_str} | {entry['name']} \n"
         scoreboard_text.insert("1.0", score_message)
 
         scoreboard_window.mainloop()
