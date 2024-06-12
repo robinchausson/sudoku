@@ -5,7 +5,7 @@ import tkinter as tk
 class Solveur(gridb.Grille):
     """ Grille avec des méthodes supplémentaires pour obtenir les solutions """
 
-    def __init__(self, grille:list, n:int, root, grille_front):
+    def __init__(self, grille:list, n:int, root=None, grille_front=None):
         super().__init__(n)
         self.fill(grille)
         self._tabGrille = grille  # On garde le tableau pour les solutions multiples
@@ -68,33 +68,6 @@ class Solveur(gridb.Grille):
         # Quand il n'y a pas de solution
         else:
             return False
-    
-    def getAllSolutions(self)->list:
-        """ Renvoie les solution du Sudoku dans une liste de Solveur()"""
-        self.solutions = []
-        
-        self.grille = Solveur(self._tabGrille, self.size).grille
-        self.pileCaseAResoudre = gridb.Pile(self.__getCaseAResoudre())
-        self.pileCaseResolu = gridb.Pile()
-
-        isASolution = True
-        # On fais une résolution de la grille avec la case actuelle en premiere place
-        while not self.pileCaseAResoudre.isEmpty():
-            case = self.pileCaseAResoudre.depiler()
-            if not self.modifyCase(case):
-                isASolution = False
-                break
-        
-        if isASolution:
-            solution = self.toList()
-            if solution not in self.solutions:
-                self.solutions.append(solution)
-
-        # On repasse les solutions sous forme de grille
-        for i in range(len(self.solutions)):
-            self.solutions[i] = Solveur(self.solutions[i], self.size)
-            
-        return self.solutions
     
     def getSolution(self)->list:
         """ Renvoie une solution du Sudoku sous forme de liste (sans utiliser getAllSoltions())"""
